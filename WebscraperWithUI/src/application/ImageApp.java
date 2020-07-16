@@ -52,7 +52,6 @@ public class ImageApp extends Application {
 	@Override
 	public void start(Stage stage) throws Exception {
 		// TODO Auto-generated method stub
-		StackPane root = new StackPane();
 		vbox = new VBox();
 		Button button = new Button("Load");
 		
@@ -61,8 +60,8 @@ public class ImageApp extends Application {
 		};
 		button.setOnAction(x);
 		
-		root.getChildren().add(button);
-		Scene scene = new Scene(root);
+		vbox.getChildren().add(button);
+		Scene scene = new Scene(vbox);
 		stage.setTitle("Yahoo Webscraper");
 		stage.setScene(scene);
 		stage.sizeToScene();
