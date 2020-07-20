@@ -59,16 +59,11 @@ import org.jsoup.select.Elements;
 
 public class ImageApp extends Application {
 
-	private VBox vbox;
-	private ImageView imgOne;
-	private ImageView imgTwo;
 	private Button button;
 	private Label label;
 	private TextField textField;
-	private HBox hb;
 	private Text title;
 	private TableView<Stocks> table;
-	//private String[] label1 = new String[16];
 	private ObservableList<Stocks> label1 = FXCollections.observableArrayList();
 	private ObservableList<Stocks> number = FXCollections.observableArrayList();
 
@@ -79,14 +74,12 @@ public class ImageApp extends Application {
 		// TODO Auto-generated method stub
 		// variable creation 
 		GridPane gp = new GridPane();
-		gp.setGridLinesVisible(true);
-		title = new Text("YAHOO WEBSCRAPER!");
+		//gp.setGridLinesVisible(true);
+		title = new Text("YAHOO FINANCE WEBSCRAPER!");
 		title.setFont(Font.font("Tahoma", FontWeight.NORMAL,20));
-		vbox = new VBox();
 		button = new Button("Load"); // loads the website details 
 		label = new Label("Ticker Symbol: ");
 		textField = new TextField();
-		hb = new HBox();
 		
 		// creating the table
 		table = new TableView<>();
@@ -122,6 +115,8 @@ public class ImageApp extends Application {
 			table.getItems().clear();
 			action(textField.getText());
 			table.setItems(label1);
+			firstCol.setText(label1.get(0).getComp());
+			secondCol.setText("Current Price: " + label1.get(0).getCurr());
 		};
 		
 		button.setOnAction(x);
@@ -133,7 +128,7 @@ public class ImageApp extends Application {
 		gp.add(button, 3, 1, 5, 1);
 		gp.add(table, 0, 3,9,5);
 		
-		Scene scene = new Scene(gp,350,400);
+		Scene scene = new Scene(gp,360,500);
 		stage.setTitle("Yahoo Webscraper");
 		stage.setScene(scene);
 		stage.sizeToScene();
@@ -147,30 +142,34 @@ public class ImageApp extends Application {
 			website = Jsoup.connect("https://finance.yahoo.com/quote/" + text.toUpperCase() + "?p=" + text.toUpperCase()).get();
 			Elements prices = website.getElementsByClass("Ta(end) Fw(600) lh(14px)"); //
 			Elements names = website.getElementsByClass("C($primaryColor) W(51%)");
+			Elements companyName = website.getElementsByClass("D(ib) Fz(18px)");
+			Elements currentPrice = website.getElementsByClass("Trsdu(0.3s) Fw(b) "
+					+ "Fz(36px) Mb(-4px) D(ib)");
 			int counter = 0;
 			while (counter < prices.size()) {
-				//label1.add(names.get(counter).text());
-				//number.add(prices.get(counter).text());
-				//System.out.println(label1.get(counter).toUpperCase() + ": \t" + number.get(counter));
 				label1.add(new Stocks(names.get(counter).text(),prices.get(counter).text()));
-				System.out.println(label1.get(counter).getStockName() + ": \t" + 
-				label1.get(counter).getStockPrice());
 				counter++;
 			}
+			label1.get(0).setComp(companyName.text());
+			label1.get(0).setCurr(currentPrice.text());
 
 		} catch (Exception e) {
 			System.out.println("Invalid Text Provided");
 		}
 	}
 	
-	public static class Stocks {
+	public class Stocks {
 		
 		private final SimpleStringProperty stockName;
 		private final SimpleStringProperty stockPrice;
+		private String stockCompanyName;
+		private String stockCurrentP;
 		
 		private Stocks(String name, String price) {
 			this.stockName = new SimpleStringProperty(name);
 			this.stockPrice = new SimpleStringProperty(price);
+			stockCompanyName = "";
+			stockCurrentP = "";
 		}
 		
 		public String getStockPrice() {
@@ -187,6 +186,22 @@ public class ImageApp extends Application {
 		
 		public void setStockPrice(String price) { 
 			stockPrice.set(price);
+		}
+		
+		public String getComp() {
+			return this.stockCompanyName;
+		}
+		
+		public String getCurr() {
+			return this.stockCurrentP;
+		}
+		
+		public void setComp(String x) {
+			stockCompanyName = x;
+		}
+		
+		public void setCurr(String x) {
+			stockCurrentP = x;
 		}
 	}
 	
