@@ -4,6 +4,9 @@ import javafx.scene.layout.StackPane;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.Node;
@@ -14,6 +17,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.Menu;
@@ -24,6 +28,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.control.Separator;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.event.ActionEvent;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
@@ -61,6 +67,12 @@ public class ImageApp extends Application {
 	private TextField textField;
 	private HBox hb;
 	private Text title;
+	private TableView<Stocks> table;
+	//private String[] label1 = new String[16];
+	private ObservableList<Stocks> label1 = FXCollections.observableArrayList();
+	private ObservableList<Stocks> number = FXCollections.observableArrayList();
+
+
 	
 	@Override
 	public void start(Stage stage) throws Exception {
@@ -76,9 +88,26 @@ public class ImageApp extends Application {
 		textField = new TextField();
 		hb = new HBox();
 		
+		// creating the table
+		table = new TableView<>();
+		table.setEditable(true);
+		TableColumn<Stocks,Stocks> firstCol = new TableColumn<>("");
+		firstCol.setPrefWidth(160);
+		TableColumn<Stocks,Stocks> secondCol = new TableColumn<>(" ");
+		secondCol.setPrefWidth(200);
+		table.setPlaceholder(new Label("Nothing to display"));
+		table.getColumns().clear();
+		table.getItems().clear();
+		firstCol.setCellValueFactory(new PropertyValueFactory<>("stockName"));
+		secondCol.setCellValueFactory(new PropertyValueFactory<>("stockPrice"));
+		
+		table.setItems(label1);
+		table.getColumns().add(firstCol);
+		table.getColumns().add(secondCol);
+
 		gp.setHgap(10);
 		gp.setVgap(10);
-		gp.setPadding(new Insets(0,10,10,10));
+		gp.setPadding(new Insets(0,0,10,10));
 		
 		GridPane.setFillWidth(label, true);
 		GridPane.setFillWidth(button, true);
@@ -90,18 +119,19 @@ public class ImageApp extends Application {
 		
 		
 		EventHandler<ActionEvent> x = value -> {
-			System.out.println("Hello World");
-
+			table.getItems().clear();
+			action(textField.getText());
+			table.setItems(label1);
 		};
 		
 		button.setOnAction(x);
 		
 		
-		vbox.getChildren().addAll(hb);
 		gp.add(title, 0, 0,2,1);
 		gp.add(label,0,1);
 		gp.add(textField, 1, 1);
-		gp.add(button, 3, 1, 2, 1);
+		gp.add(button, 3, 1, 5, 1);
+		gp.add(table, 0, 3,9,5);
 		
 		Scene scene = new Scene(gp,350,400);
 		stage.setTitle("Yahoo Webscraper");
@@ -109,6 +139,55 @@ public class ImageApp extends Application {
 		stage.sizeToScene();
 		stage.show();
 		
+	}
+	
+	public void action(String text) {
+		Document website;
+		try {
+			website = Jsoup.connect("https://finance.yahoo.com/quote/" + text.toUpperCase() + "?p=" + text.toUpperCase()).get();
+			Elements prices = website.getElementsByClass("Ta(end) Fw(600) lh(14px)"); //
+			Elements names = website.getElementsByClass("C($primaryColor) W(51%)");
+			int counter = 0;
+			while (counter < prices.size()) {
+				//label1.add(names.get(counter).text());
+				//number.add(prices.get(counter).text());
+				//System.out.println(label1.get(counter).toUpperCase() + ": \t" + number.get(counter));
+				label1.add(new Stocks(names.get(counter).text(),prices.get(counter).text()));
+				System.out.println(label1.get(counter).getStockName() + ": \t" + 
+				label1.get(counter).getStockPrice());
+				counter++;
+			}
+
+		} catch (Exception e) {
+			System.out.println("Invalid Text Provided");
+		}
+	}
+	
+	public static class Stocks {
+		
+		private final SimpleStringProperty stockName;
+		private final SimpleStringProperty stockPrice;
+		
+		private Stocks(String name, String price) {
+			this.stockName = new SimpleStringProperty(name);
+			this.stockPrice = new SimpleStringProperty(price);
+		}
+		
+		public String getStockPrice() {
+			return stockPrice.get();
+		}
+		
+		public String getStockName() {
+			return stockName.get();
+		}
+		
+		public void setStockName(String name) {
+			stockName.set(name.toUpperCase());
+		}
+		
+		public void setStockPrice(String price) { 
+			stockPrice.set(price);
+		}
 	}
 	
 	

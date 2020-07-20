@@ -13,7 +13,7 @@ public class Main  {
 		try {
 			Application.launch(ImageApp.class,args);
 		} catch (Exception e) {
-			System.out.println("xD");
+			System.out.println("Error invalid input. Please try again.");
 		}
 	}
 }
